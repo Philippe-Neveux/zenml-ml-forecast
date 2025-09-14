@@ -1,5 +1,4 @@
 import base64
-import logging
 from io import BytesIO
 from typing import Dict, List, Tuple
 
@@ -13,7 +12,6 @@ from zenml import log_metadata, step
 from zenml.types import HTMLString
 
 from zenml_ml_forecast.materializers.prophet_materializer import ProphetMaterializer
-
 
 @step
 def evaluate_models(

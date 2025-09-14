@@ -16,7 +16,8 @@ zenml-register-code-repository:
 	source .env && uv run zenml code-repository register github_ml_forecast \
 		--type=github \
 		--owner=Philippe-Neveux \
-		--repository=zenml-ml-forecast
+		--repository=zenml-ml-forecast \
+		--token=$$GITHUB_TOKEN
 
 zenml-configure-mlops-stack:
 	@echo "Configure MLOps stack with each component ..."
