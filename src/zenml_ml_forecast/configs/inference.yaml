@@ -3,17 +3,7 @@
 # environment configuration
 settings:
   docker:
-    required_integrations:
-      - pandas
-      - numpy
-    requirements:
-      - matplotlib>=3.5.0
-      - plotly
-      - prophet>=3.5.0
-      - pyarrow
-      - fastparquet
-      - typing_extensions>=4.0.0
-
+    target_repository: zenml-ml-forecast
 # configuration of the Model Control Plane
 model:
   name: retail_forecast_model

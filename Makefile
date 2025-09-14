@@ -34,7 +34,25 @@ connect-k8s-cluster:
 	echo "Connecting to Kubernetes cluster..."
 	gcloud container clusters get-credentials zenml --region australia-southeast1 --project zenml-470505
 
+kubectl-set-namespace-zenml:
+	@echo "Setting default namespace to zenml..."
+	kubectl config set-context --current --namespace=zenml
+
+get-pods: kubectl-set-namespace-zenml
+	@echo "Listing pods in the current namespace..."
+	kubectl get pods --sort-by=.metadata.creationTimestamp
+
+kubectl-cleanup-completed-pods:
+	@echo "Removing completed pods in all namespaces..."
+	# Remove succeeded pods
+	kubectl delete pods --field-selector=status.phase=Succeeded
+	# Remove failed pods  
+	kubectl delete pods --field-selector=status.phase=Failed
 
 # Run Pipeline
 run-main-pipeline:
-	uv run python src/zenml_ml_forecast/main.py
+	@echo "Running the main pipeline..."
+	uv run main
+
+ruff:
+	uv run ruff check src/zenml_ml_forecast --fix --select I

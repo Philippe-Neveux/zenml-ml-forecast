@@ -1,17 +1,43 @@
 from typing import Dict, Tuple
-
-from steps.data_loader import load_data
-from steps.data_preprocessor import preprocess_data
-from steps.data_visualizer import visualize_sales_data
-from steps.model_evaluator import evaluate_models
-from steps.model_trainer import train_model
-from steps.predictor import generate_forecasts
+from pathlib import Path
+from loguru import logger
 from typing_extensions import Annotated
 from zenml import pipeline
+from zenml.integrations.kubernetes.flavors import KubernetesOrchestratorSettings
+from zenml.integrations.kubernetes.pod_settings import KubernetesPodSettings
 from zenml.types import HTMLString
 
+from zenml_ml_forecast import inference
+from zenml_ml_forecast.steps.data_processing import (
+    load_data,
+    preprocess_data,
+    visualize_sales_data,
+)
+from zenml_ml_forecast.steps.model import evaluate_models, train_model
+from zenml_ml_forecast.steps.predictor import generate_forecasts
 
-@pipeline(name="retail_forecast_pipeline")
+k8s_settings = KubernetesOrchestratorSettings(
+    orchestrator_pod_settings=KubernetesPodSettings(
+        resources={
+            "requests": {
+                "cpu": "1",
+                "memory": "2Gi"
+            },
+            "limits": {
+                "cpu": "2",
+                "memory": "4Gi"
+            }
+        }
+    ),
+    service_account_name="zenml-service-account"
+)
+
+@pipeline(
+    name="ml_forecast_training_pipeline",
+    settings={
+        "orchestrator": k8s_settings
+    }
+)
 def training_pipeline() -> Tuple[
     Annotated[Dict[str, float], "model_metrics"],
     Annotated[HTMLString, "evaluation_report"],
@@ -74,3 +100,38 @@ def training_pipeline() -> Tuple[
     )
 
     return metrics, evaluation_report, forecast_dashboard, sales_viz
+
+
+def main(
+):
+    """Run a simplified retail forecasting pipeline with ZenML.
+
+    Args:
+        config: Path to the configuration YAML file
+        no_cache: Disable caching for the pipeline run
+    """
+    pipeline_options = {}
+    
+   
+    config_path = Path("src/zenml_ml_forecast/configs/training.yaml")
+    if not config_path.exists():
+        raise FileNotFoundError(f"Configuration file not found: {config_path}")
+
+    # Set config path
+    pipeline_options["config_path"] = config_path
+
+    logger.info("\n" + "=" * 80)
+    logger.info(f"Using configuration from: {config_path}")
+
+    logger.info("Running retail forecasting training pipeline...")
+    run = training_pipeline.with_options(**pipeline_options)()
+
+    logger.info("=" * 80 + "\n")
+
+    logger.info("\n" + "=" * 80)
+    logger.info(f"Pipeline completed successfully! Run ID: {run.id}")
+    logger.info("=" * 80 + "\n")
+
+
+if __name__ == "__main__":
+    main()
