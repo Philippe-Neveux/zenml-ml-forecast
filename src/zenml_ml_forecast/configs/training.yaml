@@ -4,6 +4,10 @@
 settings:
   docker:
     target_repository: zenml-ml-forecast
+    pyproject_path: pyproject.toml
+    build_config:
+      build_options:
+        platform: linux/amd64
 
 # configuration of the Model Control Plane
 model:
