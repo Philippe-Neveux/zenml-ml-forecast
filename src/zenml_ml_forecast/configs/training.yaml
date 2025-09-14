@@ -15,10 +15,6 @@ model:
 
 # Step-specific parameters
 steps:
-  # Data loading parameters
-  load_data:
-    # No specific parameters needed for this step
-  
   # Data preprocessing parameters
   preprocess_data:
     test_size: 0.15

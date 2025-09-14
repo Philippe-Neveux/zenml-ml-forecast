@@ -1,5 +1,6 @@
-from typing import Dict, Tuple
 from pathlib import Path
+from typing import Dict, Tuple
+
 from loguru import logger
 from typing_extensions import Annotated
 from zenml import pipeline
@@ -111,7 +112,6 @@ def main(
         no_cache: Disable caching for the pipeline run
     """
     pipeline_options = {}
-    
    
     config_path = Path("src/zenml_ml_forecast/configs/training.yaml")
     if not config_path.exists():

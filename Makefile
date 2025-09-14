@@ -50,9 +50,13 @@ kubectl-cleanup-completed-pods:
 	kubectl delete pods --field-selector=status.phase=Failed
 
 # Run Pipeline
-run-main-pipeline:
-	@echo "Running the main pipeline..."
-	uv run main
+run-training-pipeline:
+	@echo "Running the training pipeline..."
+	uv run training
+
+run-inference-pipeline:
+	@echo "Running the inference pipeline..."
+	uv run inference
 
 ruff:
 	uv run ruff check src/zenml_ml_forecast --fix --select I

@@ -142,7 +142,8 @@ def preprocess_data(
 
 @step
 def validate_data(
-    sales_data: pd.DataFrame, calendar_data: pd.DataFrame
+    sales_data: pd.DataFrame,
+    calendar_data: pd.DataFrame
 ) -> Tuple[
     Annotated[pd.DataFrame, "sales_data_validated"],
     Annotated[pd.DataFrame, "calendar_data_validated"],
