@@ -58,5 +58,5 @@ def simple_ml_pipeline():
     dataset = load_data()
     train_model(dataset)
 
-def entrypoint():
+def main():
     run = simple_ml_pipeline()

@@ -30,5 +30,6 @@ dev = [
 package = true
 
 [project.scripts]
+main = "zenml_ml_forecast.main:main"
 training = "zenml_ml_forecast.training:main"
 inference = "zenml_ml_forecast.inference:main"

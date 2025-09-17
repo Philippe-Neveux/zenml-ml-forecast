@@ -1,10 +1,12 @@
+INGRESS_IP_ADDRESS := 34.40.165.212
+
 zenml-login:
-	uv run zenml login https://zenml-server.34.40.173.65.nip.io
+	uv run zenml login https://zenml-server.$(INGRESS_IP_ADDRESS).nip.io
 
 zenml-init:
 	uv run zenml init
 
-BUCKET_NAME := zenml-zenml-artifacts
+BUCKET_NAME := zenml-472221-artifacts
 zenml-register-artifact-store:
 	@echo "Registering GCS artifact store in ZenML..."
 	uv run zenml artifact-store register gs_store_ml_forecast \
@@ -33,7 +35,7 @@ zenml-configure-mlops-stack:
 # Kubernetes
 connect-k8s-cluster:
 	echo "Connecting to Kubernetes cluster..."
-	gcloud container clusters get-credentials zenml --region australia-southeast1 --project zenml-470505
+	gcloud container clusters get-credentials zenml --region australia-southeast1 --project zenml-472221
 
 kubectl-set-namespace-zenml:
 	@echo "Setting default namespace to zenml..."
@@ -51,6 +53,10 @@ kubectl-cleanup-completed-pods:
 	kubectl delete pods --field-selector=status.phase=Failed
 
 # Run Pipeline
+run-main-pipeline:
+	@echo "Running the main pipeline..."
+	uv run main
+
 run-training-pipeline:
 	@echo "Running the training pipeline..."
 	uv run training
