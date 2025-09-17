@@ -6,7 +6,7 @@ zenml-login:
 zenml-init:
 	uv run zenml init
 
-BUCKET_NAME := zenml-472221-artifacts
+BUCKET_NAME := zenml-472221-zenml-artifacts
 zenml-register-artifact-store:
 	@echo "Registering GCS artifact store in ZenML..."
 	uv run zenml artifact-store register gs_store_ml_forecast \
