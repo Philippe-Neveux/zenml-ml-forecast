@@ -1,6 +1,5 @@
 from pathlib import Path
 
-from flask import config
 from loguru import logger
 from zenml import get_pipeline_context, pipeline
 

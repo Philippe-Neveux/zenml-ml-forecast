@@ -5,6 +5,7 @@ from loguru import logger
 import mlflow
 from typing_extensions import Annotated
 from zenml import pipeline
+from zenml.config import DockerSettings
 from zenml.integrations.kubernetes.flavors import KubernetesOrchestratorSettings
 from zenml.integrations.kubernetes.pod_settings import KubernetesPodSettings
 from zenml.types import HTMLString
@@ -17,6 +18,10 @@ from zenml_ml_forecast.steps.data_processing import (
 from zenml_ml_forecast.steps.model import evaluate_models, train_model
 from zenml_ml_forecast.steps.predictor import generate_forecasts
 
+docker_settings = DockerSettings(
+    target_repository="zenml-ml-forecast"
+)
+
 k8s_settings = KubernetesOrchestratorSettings(
     orchestrator_pod_settings=KubernetesPodSettings(
         resources={
@@ -28,7 +33,11 @@ k8s_settings = KubernetesOrchestratorSettings(
                 "cpu": "2",
                 "memory": "4Gi"
             }
-        }
+        },
+        # Install the package in the container
+        post_commands=[
+            "pip install -e /app/code"
+        ]
     ),
     service_account_name="zenml-service-account"
 )
@@ -36,6 +45,7 @@ k8s_settings = KubernetesOrchestratorSettings(
 @pipeline(
     name="ml_forecast_training_pipeline",
     settings={
+        "docker": docker_settings,
         "orchestrator": k8s_settings
     }
 )

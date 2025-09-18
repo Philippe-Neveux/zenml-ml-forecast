@@ -4,6 +4,7 @@
 settings:
   docker:
     target_repository: zenml-ml-forecast
+    allow_download_from_code_repository: True
 # configuration of the Model Control Plane
 model:
   name: retail_forecast_model
