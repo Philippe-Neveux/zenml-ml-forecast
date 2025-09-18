@@ -1,11 +1,12 @@
 from pathlib import Path
 from typing import Dict, Tuple
 
-from loguru import logger
 import mlflow
+from loguru import logger
 from typing_extensions import Annotated
 from zenml import pipeline
 from zenml.config import DockerSettings
+from zenml.integrations.bentoml.steps import bento_builder_step
 from zenml.integrations.kubernetes.flavors import KubernetesOrchestratorSettings
 from zenml.integrations.kubernetes.pod_settings import KubernetesPodSettings
 from zenml.types import HTMLString
@@ -109,6 +110,22 @@ def training_pipeline() -> Tuple[
         models=models,
         train_data_dict=train_data_dict,
         series_ids=series_ids,
+    )
+
+    bento = bento_builder_step(
+        model=model,
+        model_name="pytorch_mnist",  # Name of the model
+        model_type="pytorch",  # Type of the model (pytorch, tensorflow, sklearn, xgboost..)
+        service="service.py:CLASS_NAME",  # Path to the service file within zenml repo
+        labels={  # Labels to be added to the bento bundle
+            "framework": "pytorch",
+            "dataset": "mnist",
+            "zenml_version": "0.21.1",
+        },
+        exclude=["data"],  # Exclude files from the bento bundle
+        python={
+            "packages": ["zenml", "torch", "torchvision"],
+        },  # Python package requirements of the model
     )
 
     return metrics, evaluation_report, forecast_dashboard, sales_viz
