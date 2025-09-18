@@ -25,7 +25,7 @@ jobs:
 
     - name: Check Zenml status
       run: |
-        uv run znml status
+        uv run zenml status
 
     - name: Login to ZenML server
       run: |
