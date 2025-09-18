@@ -1,5 +1,7 @@
 INGRESS_IP_ADDRESS := 34.40.165.212
 
+https://zenml-server.34.40.165.212.nip.io
+
 zenml-login:
 	uv run zenml login https://zenml-server.$(INGRESS_IP_ADDRESS).nip.io
 

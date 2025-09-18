@@ -1,0 +1,36 @@
+name: Run the Training pipeline
+
+on:
+  push:
+    branches: [ main ]
+    
+jobs:
+  run-zenml-training-pipeline:
+    runs-on: ubuntu-latest
+    env:
+      ZENML_STORE_URL:  ${{ secrets.ZENML_STORE_URL }}
+      ZENML_STORE_API_KEY: ${{ secrets.ZENML_API_KEY }}
+      ZENML_PROJECT: default
+      ZENML_STACK: ml_forecast_stack
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Install uv
+      uses: astral-sh/setup-uv@v5
+          
+    - name: Install dependencies
+      run: |
+        uv sync --locked
+
+    - name: Login to ZenML server
+      run: |
+        zenml project set ${{ env.ZENML_PROJECT }}
+
+    - name: Set stack
+      run: |
+        zenml stack set ${{ env.ZENML_STACK }}
+
+    - name: Run training pipeline
+      run: |
+        make run-training-pipeline
