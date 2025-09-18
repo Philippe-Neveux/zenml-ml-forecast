@@ -25,11 +25,11 @@ jobs:
 
     - name: Login to ZenML server
       run: |
-        zenml project set ${{ env.ZENML_PROJECT }}
+        uv run zenml project set ${{ env.ZENML_PROJECT }}
 
     - name: Set stack
       run: |
-        zenml stack set ${{ env.ZENML_STACK }}
+        uv run zenml stack set ${{ env.ZENML_STACK }}
 
     - name: Run training pipeline
       run: |
