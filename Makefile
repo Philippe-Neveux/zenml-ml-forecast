@@ -37,7 +37,9 @@ zenml-configure-mlops-stack:
 # Kubernetes
 connect-k8s-cluster:
 	echo "Connecting to Kubernetes cluster..."
-	gcloud container clusters get-credentials zenml --region australia-southeast1 --project zenml-472221
+	gcloud container clusters get-credentials zenml \
+		--region australia-southeast1 \
+		--project zenml-472221
 
 kubectl-set-namespace-zenml:
 	@echo "Setting default namespace to zenml..."
