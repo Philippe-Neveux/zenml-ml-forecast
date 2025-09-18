@@ -1,3 +1,7 @@
+# [build-system]
+# requires = ["setuptools>=61.0", "wheel"]
+# build-backend = "setuptools.build_meta"
+
 [project]
 name = "zenml-ml-forecast"
 version = "0.1.0"
@@ -28,6 +32,10 @@ dev = [
 
 [tool.uv]
 package = true
+
+[tool.setuptools.packages.find]
+include = ["zenml_ml_forecast*"]
+# exclude = ["data*", "notebooks*", "tests*"]
 
 [project.scripts]
 main = "zenml_ml_forecast.main:main"
