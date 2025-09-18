@@ -136,7 +136,7 @@ def main(
     """
     pipeline_options = {}
    
-    config_path = Path("src/zenml_ml_forecast/configs/training.yaml")
+    config_path = Path("zenml_ml_forecast/configs/training.yaml")
     if not config_path.exists():
         raise FileNotFoundError(f"Configuration file not found: {config_path}")
 

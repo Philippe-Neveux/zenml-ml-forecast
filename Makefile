@@ -66,4 +66,4 @@ run-inference-pipeline:
 	uv run inference
 
 ruff:
-	uv run ruff check src/zenml_ml_forecast --fix --select I
+	uv run ruff check zenml_ml_forecast --fix --select I
