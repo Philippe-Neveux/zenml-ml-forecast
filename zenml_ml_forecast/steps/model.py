@@ -2,6 +2,7 @@ import base64
 from io import BytesIO
 from typing import Dict, List, Tuple
 
+import mlflow
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
@@ -12,6 +13,16 @@ from zenml import log_metadata, step
 from zenml.types import HTMLString
 
 from zenml_ml_forecast.materializers.prophet_materializer import ProphetMaterializer
+
+from zenml.integrations.mlflow.flavors.mlflow_experiment_tracker_flavor import (
+    MLFlowExperimentTrackerSettings,
+)
+
+mlflow_settings = MLFlowExperimentTrackerSettings(
+    experiment_name="ml_forecast_experiment",
+    nested=True,
+    tags={},
+)
 
 @step
 def evaluate_models(
@@ -302,7 +313,13 @@ def create_evaluation_report(average_metrics, series_metrics, plot_image_data):
     return HTMLString(html)
 
 
-@step(output_materializers=ProphetMaterializer)
+@step(
+    experiment_tracker="mlflow",
+    settings={
+        "experiment_tracker": mlflow_settings
+    },
+    output_materializers=ProphetMaterializer
+)
 def train_model(
     train_data_dict: Dict[str, pd.DataFrame],
     series_ids: List[str],
@@ -340,10 +357,19 @@ def train_model(
 
         # Fit model
         model.fit(train_data)
+        
+        mlflow.prophet.log_model(
+            pr_model=model,
+            artifact_path=f"artifacts/models/prophet_model_{series_id}",
+            registered_model_name=f"prophet_model_{series_id}",
+            input_example=train_data.head()
+        )
+        logger.info(f"Logged model for series_id: {series_id} to MLflow.")
 
         # Store trained model
         models[series_id] = model
 
     logger.info(f"Successfully trained {len(models)} Prophet models")
+        
 
     return models

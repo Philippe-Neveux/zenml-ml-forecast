@@ -33,11 +33,7 @@ k8s_settings = KubernetesOrchestratorSettings(
                 "cpu": "2",
                 "memory": "4Gi"
             }
-        },
-        # Install the package in the container
-        post_commands=[
-            "pip install -e /app/code"
-        ]
+        }
     ),
     service_account_name="zenml-service-account"
 )
@@ -101,18 +97,7 @@ def training_pipeline() -> Tuple[
     logger.info(f"Types of models: {models}.")
     logger.info(f"models: {models}.")
     
-    #Log all models in mlflow
-    # for series_id, model in models.items():
-    #     logger.info(f"Logging model for series_id: {series_id}")
-    #     model.log_model(
-    #         artifact_path=f"prophet_model_{series_id}",
-    #         registered_model_name=f"prophet_model_{series_id}"
-    #     )
-    #     mlflow.prophet.log_model(
-    #         pr_model=model,
-    #         name=series_id,
-    #         input_example=train_data_dict[series_id].head()
-    #     )
+    #Log
 
     # Evaluate models
     metrics, evaluation_report = evaluate_models(
