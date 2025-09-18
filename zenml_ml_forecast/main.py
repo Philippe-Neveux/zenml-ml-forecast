@@ -19,11 +19,7 @@ k8s_settings = KubernetesOrchestratorSettings(
                 "cpu": "2",
                 "memory": "4Gi"
             }
-        },
-        # Install the package in the container
-        post_commands=[
-            "pip install -e /app/code"
-        ]
+        }
     ),
     service_account_name="zenml-service-account"
 )
