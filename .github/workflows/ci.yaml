@@ -18,6 +18,11 @@ jobs:
 
     - name: Install uv
       uses: astral-sh/setup-uv@v5
+
+    - name: GCP auth
+      uses: google-github-actions/auth@v2
+      with:
+        credentials_json: '${{ secrets.GCP_SA_KEY }}'
           
     - name: Install dependencies
       run: |
