@@ -3,6 +3,7 @@ name: Run the Training pipeline
 on:
   push:
     branches: [ main ]
+  workflow_dispatch:
     
 jobs:
   run-zenml-training-pipeline:
