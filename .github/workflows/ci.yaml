@@ -13,6 +13,7 @@ jobs:
       ZENML_STORE_API_KEY: ${{ secrets.ZENML_API_KEY }}
       ZENML_PROJECT: default
       ZENML_STACK: ml_forecast_stack
+      ZENML_CODE_REPOSITORY_IGNORE_UNTRACKED_FILES: True
 
     steps:
     - uses: actions/checkout@v4
