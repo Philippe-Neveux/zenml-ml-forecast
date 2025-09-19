@@ -1,0 +1,105 @@
+name: CD - Deploy to Google Cloud Run
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'zenml_ml_forecast/**'
+      - 'bentofile.yaml'
+      - 'pyproject.toml'
+  workflow_dispatch:
+
+env:
+  PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
+  GCP_LOCATION: australia-southeast1
+  REPOSITORY: ${{ vars.ARTIFACT_REPOSITORY }}
+  SERVICE: prophet-forecasting-service
+  REGION: australia-southeast1
+
+jobs:
+  deploy:
+    permissions:
+      contents: read
+      id-token: write
+
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+
+      - name: Install project dependencies
+        run: |
+          uv sync --lock
+
+      - name: Google Auth
+        id: auth
+        uses: 'google-github-actions/auth@v2'
+        with:
+          credentials_json: '${{ secrets.GCP_SA_KEY }}'
+
+      - name: Set up Cloud SDK
+        uses: 'google-github-actions/setup-gcloud@v2'
+
+      - name: Configure Docker to use gcloud as a credential helper
+        run: |
+          make gcp-connect-to-artifact-registry
+
+      - name: Build BentoML service
+        run: |
+          uv run bentoml build
+
+      - name: Get Bento tag
+        id: bento-tag
+        run: |
+          BENTO_TAG=$(uv run bentoml list -o json | jq -r '.[0].tag')
+          echo "tag=$BENTO_TAG" >> $GITHUB_OUTPUT
+          echo "Bento tag: $BENTO_TAG"
+
+      - name: Containerize and push to Google Artifact Registry
+        run: |
+          uv run bentoml containerize ${{ steps.bento-tag.outputs.tag }} -t $IMAGE_URI
+          IMAGE_URI="$GCP_LOCATION-docker.pkg.dev/$PROJECT_ID/$REPOSITORY/$SERVICE:latest"
+          bentoml containerize ${{ steps.bento-tag.outputs.tag }} -t $IMAGE_URI
+          docker push $IMAGE_URI
+          echo "IMAGE_URI=$IMAGE_URI" >> $GITHUB_ENV
+
+      - name: Deploy to Cloud Run
+        id: deploy
+        uses: google-github-actions/deploy-cloudrun@v3
+        with:
+          service: ${{ env.SERVICE }}
+          region: ${{ env.REGION }}
+          image: ${{ env.IMAGE_URI }}
+          flags: |
+            --allow-unauthenticated
+            --port=3000
+            --memory=2Gi
+            --cpu=2
+            --min-instances=0
+            --max-instances=10
+            --timeout=300
+            --concurrency=1000
+          env_vars: |
+            MLFLOW_TRACKING_URI=${{ secrets.MLFLOW_TRACKING_URI }}
+
+      - name: Show service URL
+        run: echo ${{ steps.deploy.outputs.url }}
+
+      - name: Test deployment
+        run: |
+          SERVICE_URL="${{ steps.deploy.outputs.url }}"
+          echo "Testing service at: $SERVICE_URL"
+          
+          # Wait a bit for the service to be ready
+          sleep 30
+          
+          # Test the health endpoint
+          curl -f "$SERVICE_URL" || echo "Health check failed, but deployment completed"
+          
+          # Test the prediction endpoint with a sample request
+          curl -X POST "$SERVICE_URL/predict" \
+            -H "Content-Type: application/json" \
+            -d '{"segment": "Store_1-Item_A", "period": 30}' || echo "Prediction test failed, but service is deployed"

@@ -1,14 +1,14 @@
+import os
 import bentoml
 import mlflow
-import numpy as np
 
 import pandas as pd
-from bentoml.models import BentoModel
 from typing import Literal
 
 # Define the runtime environment for your Bento
 demo_image = bentoml.images.Image(python_version="3.10") \
     .python_packages(
+        "bentoml==1.4.24",
         "mlflow==2.22.2",
         "prophet==1.1.7"
     )
@@ -31,11 +31,14 @@ SegmentType = Literal[
     traffic={"timeout": 10},
 )
 class ProphetModel:
-    segments = 
+    segments = SEGMENTS
     prophet_model_names = [f"prophet_model_{segment}" for segment in segments]
 
     def __init__(self):
-        mlflow.set_tracking_uri("https://mlflow.34.40.165.212.nip.io")
+        if os.getenv("MLFLOW_TRACKING_URI"):
+            mlflow.set_tracking_uri(os.getenv("MLFLOW_TRACKING_URI"))
+        else:
+            raise ValueError("MLFLOW_TRACKING_URI environment variable is not set.")
         self.models = {}
         
         for model_name in self.prophet_model_names:

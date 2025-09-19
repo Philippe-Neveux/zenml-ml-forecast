@@ -43,3 +43,32 @@ include = ["zenml_ml_forecast*"]
 main = "zenml_ml_forecast.main:main"
 training = "zenml_ml_forecast.training:main"
 inference = "zenml_ml_forecast.inference:main"
+
+
+[tool.bentoml.build]
+service = "service:ProphetModel"
+include= [
+    "zenml_ml_forecast/",
+    "pyproject.toml",
+    "README.md"
+]
+exclude = [
+    "data/",
+    "notebooks/",
+    "artifacts/",
+    ".git/",
+    "*.egg-info/"
+]
+envs = [
+    { name = "MLFLOW_TRACKING_URI", value = "https://mlflow.34.40.165.212.nip.io" }
+]
+
+[tool.bentoml.build.docker]
+distro = "debian"
+python_version = "3.10"
+
+[tool.bentoml.build.labels]
+owner = "zenml-ml-forecast"
+stage = "production"
+
+
