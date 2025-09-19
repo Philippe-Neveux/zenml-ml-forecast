@@ -44,10 +44,6 @@ jobs:
       run: |
         make connect-k8s-cluster
 
-    - name: Check Zenml status
-      run: |
-        uv run zenml status
-
     - name: Login to ZenML server
       run: |
         uv run zenml project set ${{ env.ZENML_PROJECT }}
@@ -63,6 +59,11 @@ jobs:
     - name: Check git status
       run: |
        git status
+
+    - name: Check Zenml status
+      run: |
+        uv run zenml status
+        echo $ZENML_CODE_REPOSITORY_IGNORE_UNTRACKED_FILES
 
     - name: Run training pipeline
       run: |
