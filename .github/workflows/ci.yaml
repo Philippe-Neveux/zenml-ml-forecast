@@ -53,6 +53,10 @@ jobs:
       run: |
        find . -type f
 
+    - name: Check git status
+      run: |
+       git status
+
     - name: Run training pipeline
       run: |
         make run-training-pipeline
