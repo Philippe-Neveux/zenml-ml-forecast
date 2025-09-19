@@ -57,15 +57,19 @@ kubectl-cleanup-completed-pods:
 	kubectl delete pods --field-selector=status.phase=Failed
 
 # Run Pipeline
-run-main-pipeline:
+gcp-connect-to-artifact-registry:
+	@echo "Connecting GCP to Artifact Registry..."
+	gcloud auth configure-docker australia-southeast1-docker.pkg.dev --quiet
+
+run-main-pipeline: gcp-connect-to-artifact-registry
 	@echo "Running the main pipeline..."
 	uv run main
 
-run-training-pipeline:
+run-training-pipeline: gcp-connect-to-artifact-registry
 	@echo "Running the training pipeline..."
 	uv run training
 
-run-inference-pipeline:
+run-inference-pipeline: gcp-connect-to-artifact-registry
 	@echo "Running the inference pipeline..."
 	uv run inference
 
