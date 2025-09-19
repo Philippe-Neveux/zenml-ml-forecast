@@ -49,6 +49,10 @@ jobs:
       run: |
         uv run zenml stack set ${{ env.ZENML_STACK }}
 
+    - name: List files
+      run: |
+       find . -type f
+
     - name: Run training pipeline
       run: |
         make run-training-pipeline
