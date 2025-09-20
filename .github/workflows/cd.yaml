@@ -4,7 +4,9 @@ on:
   push:
     branches: [ main ]
     paths:
+      - '.github/workflows/cd.yaml'
       - 'zenml_ml_forecast/**'
+      - 'service.py'
       - 'bentofile.yaml'
       - 'pyproject.toml'
   workflow_dispatch:
