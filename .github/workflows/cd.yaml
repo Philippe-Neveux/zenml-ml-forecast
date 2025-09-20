@@ -62,7 +62,6 @@ jobs:
         run: |
           uv run bentoml containerize ${{ steps.bento-tag.outputs.tag }} -t $IMAGE_URI
           IMAGE_URI="${{ env.GCP_LOCATION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/${{ env.ARTIFACT_REPOSITORY }}/${{ env.SERVICE_NAME }}:latest"
-          bentoml containerize ${{ steps.bento-tag.outputs.tag }} -t $IMAGE_URI
           docker push $IMAGE_URI
 
       - name: Deploy to Cloud Run
