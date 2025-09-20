@@ -32,7 +32,7 @@ jobs:
 
       - name: Install project dependencies
         run: |
-          uv sync --lock
+          uv sync --locked
 
       - name: Google Auth
         id: auth
