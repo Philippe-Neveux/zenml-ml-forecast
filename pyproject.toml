@@ -48,11 +48,12 @@ inference = "zenml_ml_forecast.inference:main"
 [tool.bentoml.build]
 service = "service:ProphetModel"
 include= [
-    "zenml_ml_forecast/",
+    "service.py",
     "pyproject.toml",
     "README.md"
 ]
 exclude = [
+    "zenml_ml_forecast/",
     "data/",
     "notebooks/",
     "artifacts/",

@@ -12,9 +12,9 @@ on:
 env:
   PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
   GCP_LOCATION: australia-southeast1
-  REPOSITORY: ${{ vars.ARTIFACT_REPOSITORY }}
-  SERVICE: prophet-forecasting-service
-  REGION: australia-southeast1
+  ARTIFACT_REPOSITORY: ${{ vars.ARTIFACT_REPOSITORY }}
+  SERVICE_NAME: prophet-forecasting-service
+  GCP_REGION: australia-southeast1
 
 jobs:
   deploy:
@@ -61,18 +61,17 @@ jobs:
       - name: Containerize and push to Google Artifact Registry
         run: |
           uv run bentoml containerize ${{ steps.bento-tag.outputs.tag }} -t $IMAGE_URI
-          IMAGE_URI="$GCP_LOCATION-docker.pkg.dev/$PROJECT_ID/$REPOSITORY/$SERVICE:latest"
+          IMAGE_URI="${{ env.GCP_LOCATION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/${{ env.ARTIFACT_REPOSITORY }}/${{ env.SERVICE_NAME }}:latest"
           bentoml containerize ${{ steps.bento-tag.outputs.tag }} -t $IMAGE_URI
           docker push $IMAGE_URI
-          echo "IMAGE_URI=$IMAGE_URI" >> $GITHUB_ENV
 
       - name: Deploy to Cloud Run
         id: deploy
         uses: google-github-actions/deploy-cloudrun@v3
         with:
-          service: ${{ env.SERVICE }}
-          region: ${{ env.REGION }}
-          image: ${{ env.IMAGE_URI }}
+          service: ${{ env.SERVICE_NAME }}
+          region: ${{ env.GCP_REGION }}
+          image: ${{ env.GCP_LOCATION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/${{ env.ARTIFACT_REPOSITORY }}/${{ env.SERVICE_NAME }}:latest
           flags: |
             --allow-unauthenticated
             --port=3000
@@ -84,6 +83,7 @@ jobs:
             --concurrency=1000
           env_vars: |
             MLFLOW_TRACKING_URI=${{ secrets.MLFLOW_TRACKING_URI }}
+            GOOGLE_API_KEY=${{ secrets.CLOUD_RUN_SA_API_KEY }}
 
       - name: Show service URL
         run: echo ${{ steps.deploy.outputs.url }}

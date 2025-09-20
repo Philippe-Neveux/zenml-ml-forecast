@@ -41,6 +41,7 @@ class ProphetModel:
             raise ValueError("MLFLOW_TRACKING_URI environment variable is not set.")
         self.models = {}
         
+        # Load models from MLflow Model Registry
         for model_name in self.prophet_model_names:
             self.models[model_name] = mlflow.prophet.load_model(
                 f"models:/{model_name}/latest"
@@ -56,3 +57,9 @@ class ProphetModel:
         future = self.models[segment].make_future_dataframe(periods=period)
         forecast = self.models[segment].predict(future)
         return forecast[["ds", "yhat", "yhat_lower", "yhat_upper"]].tail(period)
+    
+    @bentoml.api()
+    def health(
+        self
+    ) -> str:
+        return "healthy"
