@@ -65,7 +65,6 @@ jobs:
           IMAGE_URI="${{ env.GCP_LOCATION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/${{ env.ARTIFACT_REPOSITORY }}/${{ env.SERVICE_NAME }}:latest"
           uv run bentoml containerize ${{ steps.bento-tag.outputs.tag }} -t $IMAGE_URI
           docker push $IMAGE_URI
-          echo "image_uri=$IMAGE_URI" >> $GITHUB_OUTPUT
 
       - name: Deploy to Cloud Run
         id: deploy
@@ -73,7 +72,7 @@ jobs:
         with:
           service: ${{ env.SERVICE_NAME }}
           region: ${{ env.GCP_REGION }}
-          image: ${{ steps.image_uri.outputs.image_uri }}
+          image: "${{ env.GCP_LOCATION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/${{ env.ARTIFACT_REPOSITORY }}/${{ env.SERVICE_NAME }}:latest"
           flags: |
             --allow-unauthenticated
             --port=3000
