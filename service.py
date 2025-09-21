@@ -54,8 +54,9 @@ class ProphetModel:
         segment: SegmentType,
         period: int = 365
     ) -> pd.DataFrame:
-        future = self.models[segment].make_future_dataframe(periods=period)
-        forecast = self.models[segment].predict(future)
+        model_name = f"prophet_model_{segment}"
+        future = self.models[model_name].make_future_dataframe(periods=period)
+        forecast = self.models[model_name].predict(future)
         return forecast[["ds", "yhat", "yhat_lower", "yhat_upper"]].tail(period)
     
     @bentoml.api()

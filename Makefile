@@ -75,3 +75,18 @@ run-inference-pipeline: gcp-connect-to-artifact-registry
 
 ruff:
 	uv run ruff check zenml_ml_forecast --fix --select I
+
+API_URL := https://prophet-forecasting-service-883174852290.australia-southeast1.run.app
+# API deployed
+test-api:
+	curl -X POST "$(API_URL)/predict" \
+	-H "Content-Type: application/json" \
+	-H "Authorization: Bearer $(shell gcloud auth print-identity-token)" \
+	-d '{"segment": "prophet_model_Store_1-Item_A", "period": 365}'
+
+check-logs-api:
+	@echo "Checking logs for the Cloud Run service..."
+	gcloud logging read "resource.type=cloud_run_revision AND resource.labels.service_name=prophet-forecasting-service" \
+		--project=zenml-472221 \
+		--limit=50 \
+		--format="value(textPayload)"
