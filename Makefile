@@ -82,7 +82,7 @@ test-api:
 	curl -X POST "$(API_URL)/predict" \
 	-H "Content-Type: application/json" \
 	-H "Authorization: Bearer $(shell gcloud auth print-identity-token)" \
-	-d '{"segment": "prophet_model_Store_1-Item_A", "period": 365}'
+	-d '{"segment": "Store_1-Item_A", "period": 365}'
 
 check-logs-api:
 	@echo "Checking logs for the Cloud Run service..."
