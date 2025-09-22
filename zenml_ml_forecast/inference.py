@@ -1,7 +1,10 @@
+import os
 from pathlib import Path
 
+from dotenv import load_dotenv
 from loguru import logger
-from zenml import get_pipeline_context, pipeline
+from zenml import pipeline
+from zenml.config import DockerSettings
 from zenml.integrations.kubernetes.flavors import KubernetesOrchestratorSettings
 from zenml.integrations.kubernetes.pod_settings import KubernetesPodSettings
 
@@ -11,7 +14,6 @@ from zenml_ml_forecast.steps.data_processing import (
     visualize_sales_data,
 )
 from zenml_ml_forecast.steps.predictor import generate_forecasts_from_api_step
-
 
 k8s_settings = KubernetesOrchestratorSettings(
     orchestrator_pod_settings=KubernetesPodSettings(
@@ -29,6 +31,14 @@ k8s_settings = KubernetesOrchestratorSettings(
     service_account_name="zenml-service-account"
 )
 
+load_dotenv()
+
+docker_settings = DockerSettings(
+    environment={
+        "CLOUD_RUN_API_PREDICT_ENDPOINT": os.getenv("CLOUD_RUN_API_PREDICT_ENDPOINT"),
+        "CLOUD_RUN_API_URL": os.getenv("CLOUD_RUN_API_URL")
+    }   
+)
 @pipeline(
     name="ml_forecast_inference_pipeline",
     settings={
