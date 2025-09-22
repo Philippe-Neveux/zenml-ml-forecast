@@ -2,21 +2,20 @@ import base64
 from io import BytesIO
 from typing import Dict, List, Tuple
 
-import mlflow
 import matplotlib.pyplot as plt
+import mlflow
 import numpy as np
 import pandas as pd
 from loguru import logger
 from prophet import Prophet
 from typing_extensions import Annotated
 from zenml import log_metadata, step
-from zenml.types import HTMLString
-
-from zenml_ml_forecast.materializers.prophet_materializer import ProphetMaterializer
-
 from zenml.integrations.mlflow.flavors.mlflow_experiment_tracker_flavor import (
     MLFlowExperimentTrackerSettings,
 )
+from zenml.types import HTMLString
+
+from zenml_ml_forecast.materializers.prophet_materializer import ProphetMaterializer
 
 mlflow_settings = MLFlowExperimentTrackerSettings(
     experiment_name="ml_forecast_experiment",

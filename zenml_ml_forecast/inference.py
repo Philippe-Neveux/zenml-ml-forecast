@@ -8,7 +8,7 @@ from zenml_ml_forecast.steps.data_processing import (
     preprocess_data,
     visualize_sales_data,
 )
-from zenml_ml_forecast.steps.predictor import generate_forecasts
+from zenml_ml_forecast.steps.predictor import generate_forecasts_from_api
 
 
 @pipeline(name="retail_forecast_inference_pipeline")
@@ -45,14 +45,8 @@ def inference_pipeline():
         series_ids=series_ids,
     )
 
-    # Get the models from the Model Registry
-    models = get_pipeline_context().model.get_artifact(
-        "trained_prophet_models"
-    )
-
     # Generate forecasts
-    _, combined_forecast, forecast_dashboard = generate_forecasts(
-        models=models,
+    _, combined_forecast, forecast_dashboard = generate_forecasts_from_api(
         train_data_dict=train_data_dict,
         series_ids=series_ids,
     )

@@ -1,5 +1,6 @@
 import base64
 import logging
+import os
 from datetime import timedelta
 from io import BytesIO
 from typing import Any, Dict, List, Optional, Tuple
@@ -7,12 +8,18 @@ from typing import Any, Dict, List, Optional, Tuple
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
+import requests
+from google.auth.transport.requests import Request
+from google.oauth2 import id_token
+from loguru import logger
 from prophet import Prophet
 from typing_extensions import Annotated
 from zenml import log_metadata, step
 from zenml.types import HTMLString
 
 logger = logging.getLogger(__name__)
+
+
 
 
 @step
@@ -438,7 +445,7 @@ def generate_forecasts(
     models: Dict[str, Prophet],
     train_data_dict: Dict[str, pd.DataFrame],
     series_ids: List[str],
-    forecast_periods: int = 30,
+    forecast_periods: int = 30
 ) -> Tuple[
     Annotated[Dict[str, pd.DataFrame], "forecasts_by_series"],
     Annotated[pd.DataFrame, "combined_forecast"],
@@ -543,6 +550,195 @@ def generate_forecasts(
     )
 
     return forecasts, combined_df, forecast_dashboard
+
+
+
+def make_api_post_call(
+    api_url: str,
+    payload: dict,
+    bearer_token: str,
+) -> dict:
+    """
+    Sends prediction request to a deployed model on Cloud Run API.
+
+    Args:
+        api_url: The endpoint of the Cloud Run API.
+        payload: The data to send for prediction (usually a dict).
+        bearer_token: Optional Bearer token for authentication.
+
+    Returns:
+        The prediction result as a dictionary.
+    """
+    headers = {"Content-Type": "application/json"}
+    headers["Authorization"] = f"Bearer {bearer_token}"
+
+    logger.info(f"""
+        Sending request to API endpoint: {api_url} with payload: {payload} and a Bearer Token.
+    """)
+    
+    response = requests.post(api_url, json=payload, headers=headers)
+    response.raise_for_status()
+
+    return response.json()
+
+def predict_through_api(
+    segment: str,
+    period: int,
+) -> pd.DataFrame:
+    """
+    Sends input data to the Cloud Run API for prediction and returns the results.
+
+    Args:
+        api_url: The endpoint of the Cloud Run API.
+        input_data: The input data as a pandas DataFrame.
+        bearer_token: Optional Bearer token for authentication.
+
+    Returns:
+        A DataFrame containing the prediction results.
+    """
+    if not (os.getenv("CLOUD_RUN_API_PREDICT_ENDPOINT")):
+        raise ValueError("CLOUD_RUN_API_PREDICT_ENDPOINT environment variable is not set.")
+
+    service_url = os.getenv("CLOUD_RUN_API_URL")
+    auth_req = Request()
+    bearer_token = id_token.fetch_id_token(auth_req, service_url)
+
+
+    api_response = make_api_post_call(
+        api_url=os.getenv("CLOUD_RUN_API_PREDICT_ENDPOINT"),
+        payload={ "segment": segment, "period": period },
+        bearer_token=bearer_token,
+    )
+
+    return pd.DataFrame(api_response)
+
+
+
+def generate_forecasts_from_api(
+    train_data_dict: Dict[str, pd.DataFrame],
+    series_ids: List[str],
+    forecast_periods: int = 30
+) -> Tuple[
+    Annotated[Dict[str, pd.DataFrame], "forecasts_by_series"],
+    Annotated[pd.DataFrame, "combined_forecast"],
+    Annotated[HTMLString, "forecast_dashboard"],
+]:
+    """Generate future forecasts using trained Prophet models.
+
+    Args:
+        models: Dictionary of trained Prophet models
+        train_data_dict: Dictionary of training data for each series
+        series_ids: List of series identifiers
+        forecast_periods: Number of periods to forecast into the future
+
+    Returns:
+        forecasts_by_series: Dictionary of forecast dataframes for each series
+        combined_forecast: Combined dataframe with all series forecasts
+        forecast_dashboard: HTML dashboard with forecast visualizations
+    """
+    forecasts = {}
+    
+
+    # Create a plot to visualize all forecasts
+    plt.figure(figsize=(12, len(series_ids) * 4))
+
+    for i, series_id in enumerate(series_ids):
+        logger.info(f"Generating forecast for {series_id}...")
+
+        # Get last date from training data
+        last_date = train_data_dict[series_id]["ds"].max()
+
+        # Generate forecast
+        forecast = predict_through_api(
+            segment=series_id,
+            period=forecast_periods
+        )
+
+        # Store forecast
+        forecasts[series_id] = forecast
+
+        # Plot the forecast
+        plt.subplot(len(series_ids), 1, i + 1)
+
+        # Plot training data
+        train_data = train_data_dict[series_id]
+        plt.plot(train_data["ds"], train_data["y"], "b.", label="Historical")
+
+        # Plot forecast
+        plt.plot(forecast["ds"], forecast["yhat"], "r-", label="Forecast")
+        plt.fill_between(
+            forecast["ds"],
+            forecast["yhat_lower"],
+            forecast["yhat_upper"],
+            color="gray",
+            alpha=0.2,
+        )
+
+        # Add a vertical line at the forecast start
+        plt.axvline(x=last_date, color="k", linestyle="--")
+
+        plt.title(f"Forecast for {series_id}")
+        plt.legend()
+
+    # Save plot to buffer
+    buf = BytesIO()
+    plt.tight_layout()
+    plt.savefig(buf, format="png")
+    buf.seek(0)
+    plot_data = base64.b64encode(buf.read()).decode("utf-8")
+    plt.close()
+
+    # Create a combined forecast dataframe for all series
+    combined_forecast = []
+    for series_id, forecast in forecasts.items():
+        # Add series_id column
+        forecast_with_id = forecast.copy()
+        forecast_with_id["series_id"] = series_id
+
+        # Extract store and item from series_id
+        store, item = series_id.split("-")
+        forecast_with_id["store"] = store
+        forecast_with_id["item"] = item
+
+        combined_forecast.append(forecast_with_id)
+
+    combined_df = pd.concat(combined_forecast)
+
+    # Log basic metadata (not the large plot)
+    log_metadata(
+        metadata={
+            "forecast_horizon": forecast_periods,
+            "num_series": len(series_ids),
+        }
+    )
+
+    # Create HTML dashboard
+    forecast_dashboard = create_forecast_dashboard(
+        forecasts, series_ids, train_data_dict, plot_data, forecast_periods
+    )
+
+    logger.info(
+        f"Generated forecasts for {len(forecasts)} series, {forecast_periods} periods ahead"
+    )
+
+    return forecasts, combined_df, forecast_dashboard
+
+
+@step
+def generate_forecasts_from_api_step(
+    train_data_dict: Dict[str, pd.DataFrame],
+    series_ids: List[str],
+    forecast_periods: int = 30
+) -> Tuple[
+    Annotated[Dict[str, pd.DataFrame], "forecasts_by_series"],
+    Annotated[pd.DataFrame, "combined_forecast"],
+    Annotated[HTMLString, "forecast_dashboard"],
+]:
+    return generate_forecasts_from_api(
+        train_data_dict=train_data_dict,
+        series_ids=series_ids,
+        forecast_periods=forecast_periods
+    )
 
 
 def create_forecast_dashboard(

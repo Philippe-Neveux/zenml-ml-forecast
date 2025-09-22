@@ -98,7 +98,6 @@ def training_pipeline() -> Tuple[
     logger.info(f"Types of models: {models}.")
     logger.info(f"models: {models}.")
     
-    #Log
 
     # Evaluate models
     metrics, evaluation_report = evaluate_models(
