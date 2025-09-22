@@ -5,6 +5,7 @@ from dotenv import load_dotenv
 from loguru import logger
 from zenml import pipeline
 from zenml.config import DockerSettings
+from zenml.config.docker_settings import DockerBuildConfig
 from zenml.integrations.kubernetes.flavors import KubernetesOrchestratorSettings
 from zenml.integrations.kubernetes.pod_settings import KubernetesPodSettings
 
@@ -34,14 +35,22 @@ k8s_settings = KubernetesOrchestratorSettings(
 load_dotenv()
 
 docker_settings = DockerSettings(
+    # target_repository="zenml-ml-forecast",
+    # allow_download_from_code_repository=True,
+    # pyproject_path="pyproject.toml",
+    # build_config=DockerBuildConfig(
+    #   build_options={"platform": "linux/amd64"}
+    # ),
     environment={
         "CLOUD_RUN_API_PREDICT_ENDPOINT": os.getenv("CLOUD_RUN_API_PREDICT_ENDPOINT"),
         "CLOUD_RUN_API_URL": os.getenv("CLOUD_RUN_API_URL")
     }   
 )
+
 @pipeline(
     name="ml_forecast_inference_pipeline",
     settings={
+        "docker": docker_settings,
         "orchestrator": k8s_settings
     }
 )
