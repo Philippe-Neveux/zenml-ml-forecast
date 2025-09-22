@@ -8,7 +8,7 @@ from zenml_ml_forecast.steps.data_processing import (
     preprocess_data,
     visualize_sales_data,
 )
-from zenml_ml_forecast.steps.predictor import generate_forecasts_from_api
+from zenml_ml_forecast.steps.predictor import generate_forecasts_from_api_step
 
 
 @pipeline(name="retail_forecast_inference_pipeline")
@@ -46,7 +46,7 @@ def inference_pipeline():
     )
 
     # Generate forecasts
-    _, combined_forecast, forecast_dashboard = generate_forecasts_from_api(
+    _, combined_forecast, forecast_dashboard = generate_forecasts_from_api_step(
         train_data_dict=train_data_dict,
         series_ids=series_ids,
     )
@@ -59,7 +59,7 @@ def main():
     """
     pipeline_options = {}
    
-    config_path = Path("zenml_ml_forecast/configs/training.yaml")
+    config_path = Path("zenml_ml_forecast/configs/inference.yaml")
     if not config_path.exists():
         raise FileNotFoundError(f"Configuration file not found: {config_path}")
 

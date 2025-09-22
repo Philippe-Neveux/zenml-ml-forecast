@@ -652,7 +652,9 @@ def generate_forecasts_from_api(
         forecast = predict_through_api(
             segment=series_id,
             period=forecast_periods
-        )
+        ).assign(ds=lambda _df: pd.to_datetime(_df["ds"]))
+        
+        logger.info(f"Got forecast from API for {series_id}.")
 
         # Store forecast
         forecasts[series_id] = forecast
@@ -705,12 +707,12 @@ def generate_forecasts_from_api(
     combined_df = pd.concat(combined_forecast)
 
     # Log basic metadata (not the large plot)
-    log_metadata(
-        metadata={
-            "forecast_horizon": forecast_periods,
-            "num_series": len(series_ids),
-        }
-    )
+    # log_metadata(
+    #     metadata={
+    #         "forecast_horizon": forecast_periods,
+    #         "num_series": len(series_ids),
+    #     }
+    # )
 
     # Create HTML dashboard
     forecast_dashboard = create_forecast_dashboard(
@@ -734,11 +736,13 @@ def generate_forecasts_from_api_step(
     Annotated[pd.DataFrame, "combined_forecast"],
     Annotated[HTMLString, "forecast_dashboard"],
 ]:
-    return generate_forecasts_from_api(
+    forecasts, combined_df, forecast_dashboard = generate_forecasts_from_api(
         train_data_dict=train_data_dict,
         series_ids=series_ids,
         forecast_periods=forecast_periods
     )
+    
+    return forecasts, combined_df, forecast_dashboard
 
 
 def create_forecast_dashboard(

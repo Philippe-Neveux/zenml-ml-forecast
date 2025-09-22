@@ -5,6 +5,10 @@ settings:
   docker:
     target_repository: zenml-ml-forecast
     allow_download_from_code_repository: True
+    pyproject_path: pyproject.toml
+    build_config:
+      build_options:
+        platform: linux/amd64
 # configuration of the Model Control Plane
 model:
   name: retail_forecast_model
@@ -25,4 +29,4 @@ steps:
   
   # Forecasting parameters
   generate_forecasts:
-    forecast_periods: 30 
+    forecast_periods: 60
