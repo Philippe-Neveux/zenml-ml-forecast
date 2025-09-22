@@ -19,10 +19,6 @@ from zenml_ml_forecast.steps.data_processing import (
 from zenml_ml_forecast.steps.model import evaluate_models, train_model
 from zenml_ml_forecast.steps.predictor import generate_forecasts
 
-docker_settings = DockerSettings(
-    target_repository="zenml-ml-forecast"
-)
-
 k8s_settings = KubernetesOrchestratorSettings(
     orchestrator_pod_settings=KubernetesPodSettings(
         resources={
@@ -42,7 +38,6 @@ k8s_settings = KubernetesOrchestratorSettings(
 @pipeline(
     name="ml_forecast_training_pipeline",
     settings={
-        "docker": docker_settings,
         "orchestrator": k8s_settings
     }
 )

@@ -2,6 +2,8 @@ from pathlib import Path
 
 from loguru import logger
 from zenml import get_pipeline_context, pipeline
+from zenml.integrations.kubernetes.flavors import KubernetesOrchestratorSettings
+from zenml.integrations.kubernetes.pod_settings import KubernetesPodSettings
 
 from zenml_ml_forecast.steps.data_processing import (
     load_data,
@@ -11,7 +13,28 @@ from zenml_ml_forecast.steps.data_processing import (
 from zenml_ml_forecast.steps.predictor import generate_forecasts_from_api_step
 
 
-@pipeline(name="retail_forecast_inference_pipeline")
+k8s_settings = KubernetesOrchestratorSettings(
+    orchestrator_pod_settings=KubernetesPodSettings(
+        resources={
+            "requests": {
+                "cpu": "1",
+                "memory": "2Gi"
+            },
+            "limits": {
+                "cpu": "2",
+                "memory": "4Gi"
+            }
+        }
+    ),
+    service_account_name="zenml-service-account"
+)
+
+@pipeline(
+    name="ml_forecast_inference_pipeline",
+    settings={
+        "orchestrator": k8s_settings
+    }
+)
 def inference_pipeline():
     """Pipeline to make retail demand forecasts using trained Prophet models.
 
