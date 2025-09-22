@@ -19,14 +19,10 @@ model:
 
 # Step-specific parameters
 steps:
-  # Data loading parameters
-  load_data:
-    # No specific parameters needed for this step
-  
   # Data preprocessing parameters
   preprocess_data:
     test_size: 0.05  # Small test set for visualization only
   
   # Forecasting parameters
-  generate_forecasts:
+  generate_forecasts_from_api_step:
     forecast_periods: 60
