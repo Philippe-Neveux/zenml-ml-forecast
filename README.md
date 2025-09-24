@@ -297,10 +297,6 @@ The ML service is built with BentoML and includes:
 4. Run tests and linting
 5. Submit a pull request
 
-## License
-
-This project is for demonstration purposes. Please refer to the original [ZenML projects repository](https://github.com/zenml-io/zenml-projects/tree/main/retail-forecast) for licensing information.
-
 ## Support
 
 For questions about ZenML, visit the [ZenML documentation](https://docs.zenml.io/) or join the [ZenML Slack community](https://zenml.io/slack-invite/).
