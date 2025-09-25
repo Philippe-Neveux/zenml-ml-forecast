@@ -2,7 +2,9 @@
 
 A machine learning forecasting project that demonstrates ZenML capabilities using Facebook Prophet for time series prediction. This project showcases end-to-end ML pipeline orchestration, model deployment with BentoML, and deployment to Google Cloud Run.
 
-You can find the Github repository of the deployed MlOps platform [here]([here](https://github.com/Philippe-Neveux/zenml-mlops-stack))
+You can find the Github repository of the deployed MlOps platform [here]([here](https://github.com/Philippe-Neveux/zenml-mlops-stack)). Here is the architecture overview of this MlOps Platform
+
+![Architecture Overview](docs/assets/zenml_mlops_stacks_architecture.png)
 
 ## Overview
 
